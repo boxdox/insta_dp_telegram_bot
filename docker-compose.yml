@@ -11,4 +11,4 @@ services:
       - token: ${token}
     env_file:
       - ./.env
-    command: ["python", "-u", "/app/bot.py"]
+    command: ["python", "-u", "/opt/app/bot.py"]
