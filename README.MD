@@ -17,8 +17,8 @@ _Note: the bot assumes that the API Token is available in the environment variab
 ```
 git clone https://github.com/boxdox/insta_dp_telegram_bot.git
 cd insta_dp_telegram_bot
-npm install
-npm start
+yarn
+yarn start
 ```
 
 ## Licence
