@@ -47,7 +47,9 @@ bot.command("get", ({ message, reply, replyWithPhoto }) => {
         return body.slice(l, r).replace(/\\u0026/gm, "&");
       })
       .then(image => {
-        replyWithPhoto(image);
+        replyWithPhoto(image).catch(() =>
+          reply("An error occured while sending the image. Please Try Again")
+        );
       })
       .catch(error => {
         if (error.response.status === 404) {
