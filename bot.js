@@ -21,44 +21,95 @@ bot.start(({ reply }) => {
 
 // Bot Help
 bot.command("help", ({ reply }) => {
-  reply("Use `/get username` to get started");
+  reply(
+    `Usage:
+-----------------
+/get username
+or
+paste the profile url 
+to get started
+Problems? open an issue on github repo
+https://git.io/JvouT`
+  );
 });
 
-// Bot `/get` command
-bot.command("get", ({ message, reply, replyWithPhoto }) => {
-  const data = message.text.split(" ");
-  // Validate input
-  if (data.length !== 2) {
-    reply("Invalid Request. Use `/get username`");
-  } else {
-    const username = data[1];
+// Check for profile link as message
+bot.on("message", ({ message, reply, replyWithPhoto }) => {
+  const URL_REGEX = /http(?:s)?:\/\/(?:www\.)?instagram.com\/(.*)/;
+  const COMMAND_REGEX = /\/get (.*)/;
+  const { text } = message;
+  let username;
+  // Test the message type:
+  // If it is a profile link
+  if (URL_REGEX.test(text)) {
+    username = text.match(URL_REGEX)[1];
+    if (username.includes("?")) {
+      username = username.split("?")[0];
+    }
+  }
+  // If it is a /get command
+  else if (COMMAND_REGEX.test(text)) {
+    username = text.match(COMMAND_REGEX)[1];
+    if (username.includes(" ")) {
+      username = null;
+      reply("Invalid username, try again.");
+    }
+  } // If none matches
+  else {
+    reply(
+      "Invalid Command. Use /get 'username', or paste a profile url or try /help"
+    );
+  }
+
+  // Check if username was defined from either of two regex checks and send the photo
+  if (username !== undefined && username !== null && username !== "") {
     reply("Please wait for a few seconds...");
-    axios
-      .get(`https://instagram.com/${username}`)
-      .then(res => {
-        if (res.status === 200) {
-          return res.data;
-        }
-      })
-      .then(body => {
-        // Magic! xD
-        const l = body.search("pic_url_hd") + 13;
-        const r = body.search("requested_by_viewer") - 3;
-        return body.slice(l, r).replace(/\\u0026/gm, "&");
-      })
-      .then(image => {
-        replyWithPhoto(image).catch(() =>
+    getProfileId(username, reply).then(id =>
+      getProfilePic(id).then(photo =>
+        replyWithPhoto(photo).catch(() =>
           reply("An error occured while sending the image. Please Try Again")
-        );
-      })
-      .catch(error => {
-        if (error.response.status === 404) {
-          reply("No such account exists. Check the username and try again.");
-        } else {
-          reply("Some error has occured. Try again later.");
-        }
-      });
+        )
+      )
+    );
   }
 });
+
+// Get the profile id
+const getProfileId = (username, reply) => {
+  return axios
+    .get(`https://instagram.com/${username}`)
+    .then(res => {
+      if (res.status === 200) {
+        return res.data;
+      }
+    })
+    .then(data => {
+      const graphqlData = JSON.parse(
+        data.split("window._sharedData = ")[1].split(";</script>")[0]
+      ).entry_data.ProfilePage[0].graphql;
+      return graphqlData.user.id;
+    })
+    .catch(error => {
+      if (error.response.status === 404) {
+        reply("No such account exists. Check the username and try again.");
+      } else {
+        reply("Some error has occured. Try again later.");
+      }
+    });
+};
+
+// Get hd profile pic from the id
+const getProfilePic = id => {
+  return axios
+    .get(`${process.env.PROFILE_PIC_API}${id}`)
+    .then(res => res.data)
+    .then(url => {
+      testRegex = /(https:\/\/.*)<br><br><br>/;
+      return url.match(testRegex)[1];
+    })
+    .catch(err => {
+      console.log(err.response);
+    });
+};
 
 bot.launch();

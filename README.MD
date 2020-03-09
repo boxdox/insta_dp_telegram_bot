@@ -1,12 +1,13 @@
 # Instagram Profile Picture Viewer bot for Telegram
 This bot helps you to download profile picture of any Instagram user.
+_Note: For security reasons, the API being used is stored in environment variables_
 
 ## Usage
 Use this link to get started [t.me/instagram_dp_bot](https://t.me/instagram_dp_bot) or search for `@instagram_dp_bot` 
 
 It has two commands:
 1. /start : Initializes the bot and displays help
-2. /get _username_ : This command to get profile picture of specified username
+2. /get _username_ or _instagram url_ : This command to get profile picture of specified username
 
 ## Development
 Previously, this bot was built using python [(available here)](https://github.com/boxdox/insta_dp_telegram_bot/tree/python), but now I have switched to Node.JS
