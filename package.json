@@ -8,7 +8,8 @@
   "license": "MIT",
   "scripts": {
     "dev": "nodemon -r dotenv/config bot.js",
-    "start": "node bot.js"
+    "start": "node -r dotenv/config bot.js",
+    "start:paas": "node bot.js"
   },
   "dependencies": {
     "axios": "^0.19.2",
