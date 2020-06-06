@@ -1,16 +1,21 @@
 {
   "name": "telegram-bot",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A simple telegram bot to retrieve HD Profile Picture from Instagram",
   "main": "bot.js",
   "repository": "git@github.com:boxdox/insta_dp_telegram_bot.git",
   "author": "boxdox",
   "license": "MIT",
   "scripts": {
+    "dev": "nodemon -r dotenv/config bot.js",
     "start": "node bot.js"
   },
   "dependencies": {
     "axios": "^0.19.2",
-    "telegraf": "^3.36.0"
+    "telegraf": "^3.38.0"
+  },
+  "devDependencies": {
+    "dotenv": "^8.2.0",
+    "nodemon": "^2.0.4"
   }
 }

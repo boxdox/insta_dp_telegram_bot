@@ -3,7 +3,7 @@
  * @File: bot.js
  * @Author: boxdox
  * @Date: Tuesday, February 18th 2020
- * @Last Modified: Tuesday, February 18th 2020
+ * @Last Modified: Saturday, June 6th 2020
  */
 
 const Telegraf = require("telegraf");
@@ -34,7 +34,7 @@ https://git.io/JvouT`
 });
 
 // Check for profile link as message
-bot.on("message", ({ message, reply, replyWithPhoto }) => {
+bot.on("message", async ({ message, reply, replyWithPhoto }) => {
   const URL_REGEX = /http(?:s)?:\/\/(?:www\.)?instagram.com\/(.*)/;
   const COMMAND_REGEX = /\/get (.*)/;
   const { text } = message;
@@ -64,52 +64,52 @@ bot.on("message", ({ message, reply, replyWithPhoto }) => {
   // Check if username was defined from either of two regex checks and send the photo
   if (username !== undefined && username !== null && username !== "") {
     reply("Please wait for a few seconds...");
-    getProfileId(username, reply).then(id =>
-      getProfilePic(id).then(photo =>
-        replyWithPhoto(photo).catch(() =>
-          reply("An error occured while sending the image. Please Try Again")
-        )
-      )
-    );
+    try {
+      const id = await getProfileId(username, reply);
+      const imageUrl = await getProfilePic(id, reply);
+
+      try {
+        await replyWithPhoto(imageUrl);
+      } catch ({ response }) {
+        throw new Error("Couldn't send the image, please try again later.");
+      }
+    } catch ({ message }) {
+      reply(message);
+    }
   }
 });
 
 // Get the profile id
-const getProfileId = (username, reply) => {
-  return axios
-    .get(`https://instagram.com/${username}`)
-    .then(res => {
-      if (res.status === 200) {
-        return res.data;
-      }
-    })
-    .then(data => {
-      const graphqlData = JSON.parse(
-        data.split("window._sharedData = ")[1].split(";</script>")[0]
+const getProfileId = async (username, reply) => {
+  try {
+    const res = await axios.get(`https://instagram.com/${username}`);
+    if (res.status === 200) {
+      const graphData = await JSON.parse(
+        res.data.split("window._sharedData = ")[1].split(";</script>")[0]
       ).entry_data.ProfilePage[0].graphql;
-      return graphqlData.user.id;
-    })
-    .catch(error => {
-      if (error.response.status === 404) {
-        reply("No such account exists. Check the username and try again.");
-      } else {
-        reply("Some error has occured. Try again later.");
-      }
-    });
+      return graphData.user.id;
+    }
+  } catch ({ response }) {
+    if (response.status === 404) {
+      throw new Error(
+        "No such account exists. Check the username and try again."
+      );
+    } else {
+      throw new Error("Some error has occured. Try again later.");
+    }
+  }
 };
 
 // Get hd profile pic from the id
-const getProfilePic = id => {
-  return axios
-    .get(`${process.env.PROFILE_PIC_API}${id}`)
-    .then(res => res.data)
-    .then(url => {
-      testRegex = /(https:\/\/.*)<br><br><br>/;
-      return url.match(testRegex)[1];
-    })
-    .catch(err => {
-      console.log(err.response);
-    });
+const getProfilePic = async (id, reply) => {
+  const testRegex = /(https:\/\/.*)<br><br><br>/;
+
+  try {
+    const res = await axios.get(`${process.env.PROFILE_PIC_API}${id}`);
+    return res.data.match(testRegex)[1];
+  } catch ({ response }) {
+    throw new Error("API Error, please try again later.");
+  }
 };
 
 bot.launch();
