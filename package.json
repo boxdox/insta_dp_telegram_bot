@@ -12,7 +12,7 @@
     "start:paas": "node bot.js"
   },
   "dependencies": {
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "telegraf": "^3.38.0"
   },
   "devDependencies": {
